@@ -1,0 +1,123 @@
+
+generator client {
+  provider = "prisma-client-js"
+  
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Event  {
+  id          Int   @id @default(autoincrement())
+  name        String @unique
+  date        DateTime
+  status      String @default("upcoming")
+  isInvitationSent Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  sessions Session[]
+  criteriaList PresenterCriteria[]
+  @@map("events") 
+}
+
+model Session {
+
+  id Int @id @default(autoincrement())
+  name String @unique
+  date DateTime @default(now())
+  time String
+  mode String
+  location String 
+  eventId Int @map("event_id")
+  sessionJudges JudgeSession[]
+  presenters Presenter[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event Event @relation(fields: [eventId], references: [id])
+  
+
+  @@map("session")
+
+}
+
+model Judge{
+  id Int @id @default(autoincrement())
+  name String
+  email String @unique
+  phone String
+  passwordId String @unique 
+  category String 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sessions JudgeSession[]
+
+
+ 
+
+  @@map("judges")
+}
+
+
+model JudgeSession {
+  id Int @id @default(autoincrement())
+  judgeId Int
+  sessionId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  judge Judge @relation(fields: [judgeId], references: [id])
+  session Session @relation(fields: [sessionId], references: [id])
+
+  @@map("judge_session")
+}
+
+model Members{
+
+  id          Int   @id @default(autoincrement())
+  name String
+  email String @unique
+  phone String
+  isLeader Boolean @default(false)
+  memberId String @unique
+  marks Int @default(0)
+  presenters Presenter[] @relation("PresenterMembers") // many-to-many relationship with Presenter
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("members")
+}
+
+model Presenter {
+  id Int @id @default(autoincrement())
+  type String 
+  groupName String ? @unique
+  sessionId Int
+  members Members[] @relation("PresenterMembers") // many-to-many relationship with Members
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  session Session @relation(fields: [sessionId], references: [id])
+
+
+  @@map("presenters")
+}
+
+model PresenterCriteria {
+  id Int @id @default(autoincrement())
+  eventId Int
+  name String 
+  marks Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@map("presenter_criteria")
+}
+
